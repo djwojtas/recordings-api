@@ -1,0 +1,28 @@
+spring:
+  data:
+    jpa:
+      repositories:
+        enabled: true
+  datasource:
+    hikari:
+      jdbc-url: ${JDBC_DATABASE_URL}
+      driver-class-name: org.postgresql.Driver
+      maximum-pool-size: 10
+      connection-timeout: 300
+      username: ${JDBC_DATABASE_USERNAME}
+      password: ${JDBC_DATABASE_PASSWORD}
+  jpa:
+    database: postgresql
+    properties:
+      hibernate.temp.use_jdbc_metadata_defaults: false
+    hibernate:
+      ddl-auto: validate
+        naming:
+          physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+  servlet:
+    multipart:
+      max-file-size: 10Mb
+recordings:
+  security:
+    aws-access-key-id: ${AWS_ACCESS_KEY_ID}
+    aws-secret-key: ${AWS_SECRET_KEY}
