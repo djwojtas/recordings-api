@@ -62,9 +62,9 @@ public class RecordingsService implements IRecordingsService {
 
     @Override
     public Recording uploadRecording(MultipartFile file) throws IOException, InvalidFileFormatException, EncoderException {
-        fileService.checkIfFileIsMp3(file);
+        fileService.checkIfFileIsMp4(file);
 
-        long duration = fileService.getMp3Duration(file);
+        long duration = fileService.getMultimediaObjectDuration(file);
         String fileName = fileService.uploadRecording(file);
 
         Recording recording = Recording.builder()

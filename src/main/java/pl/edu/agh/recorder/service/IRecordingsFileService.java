@@ -14,11 +14,11 @@ public interface IRecordingsFileService {
 
     String uploadRecording(MultipartFile file) throws IOException, InvalidFileFormatException, EncoderException;
 
-    long getMp3Duration(MultipartFile mp3File) throws IOException, EncoderException;
+    long getMultimediaObjectDuration(MultipartFile file) throws IOException, EncoderException;
 
     String getUniqueFileName();
 
-    void checkIfFileIsMp3(MultipartFile file) throws IOException, InvalidFileFormatException;
+    void checkIfFileIsMp4(MultipartFile file) throws IOException, InvalidFileFormatException;
 
     void deleteRecording(String fileName);
 }

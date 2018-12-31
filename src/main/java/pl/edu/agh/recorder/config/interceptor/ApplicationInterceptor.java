@@ -23,7 +23,7 @@ public class ApplicationInterceptor {
     @ExceptionHandler({InvalidFileFormatException.class})
     public ResponseEntity<ErrorResponse> handleInvalidFileFormatException() {
         return new ResponseEntity<>(
-                new ErrorResponse("Only mp3's are accepted", ApplicationError.INVALID_FILE_FORMAT.getErrorCode()),
+                new ErrorResponse("Only mp4 audi files are accepted", ApplicationError.INVALID_FILE_FORMAT.getErrorCode()),
                 HttpStatus.UNPROCESSABLE_ENTITY);
     }
 

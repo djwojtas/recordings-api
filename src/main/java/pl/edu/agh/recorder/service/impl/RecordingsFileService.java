@@ -21,6 +21,7 @@ import ws.schild.jave.MultimediaObject;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 
 @Service
 public class RecordingsFileService implements IRecordingsFileService {
@@ -32,6 +33,8 @@ public class RecordingsFileService implements IRecordingsFileService {
     private SecurityConstants securityConstants;
 
     private final static String fileNameFormat = "recordings/%s";
+    private final static byte[] mp4MagicBytes = new byte[] {0x66, 0x74, 0x79, 0x70, 0x6d, 0x70};
+    private final static int[] magicBytesRange = new int[] {4, 10};
 
     @Override
     public Resource downloadRecording(String fileName) {
@@ -60,10 +63,10 @@ public class RecordingsFileService implements IRecordingsFileService {
     }
 
     @Override
-    public long getMp3Duration(MultipartFile mp3File) throws IOException, EncoderException {
+    public long getMultimediaObjectDuration(MultipartFile file) throws IOException, EncoderException {
         String tmpPath = "./tmp/" + RandomStringUtils.randomAlphanumeric(32);
         File tmpFile = new File(tmpPath);
-        FileUtils.writeByteArrayToFile(tmpFile, mp3File.getBytes());
+        FileUtils.writeByteArrayToFile(tmpFile, file.getBytes());
         return new MultimediaObject(tmpFile).getInfo().getDuration();
     }
 
@@ -78,12 +81,13 @@ public class RecordingsFileService implements IRecordingsFileService {
     }
 
     @Override
-    public void checkIfFileIsMp3(MultipartFile file) throws IOException, InvalidFileFormatException {
+    public void checkIfFileIsMp4(MultipartFile file) throws IOException, InvalidFileFormatException {
         byte[] bytes = file.getBytes();
-        boolean isMp3v1 = bytes[0] == (byte) 0xFF && bytes[1] == (byte) 0xFB;
-        boolean isMp3v2 = bytes[0] == (byte) 0x49 && bytes[1] == (byte) 0x44 && bytes[2] == (byte) 0x33;
-        boolean isMp3 = isMp3v1 || isMp3v2;
-        if (!isMp3) throw new InvalidFileFormatException();
+        byte[] mediaInfoHeader = Arrays.copyOfRange(bytes, magicBytesRange[0], magicBytesRange[1]);
+
+        boolean isMp4 = Arrays.equals(mediaInfoHeader, mp4MagicBytes);
+
+        if (!isMp4) throw new InvalidFileFormatException();
     }
 
     @Override
