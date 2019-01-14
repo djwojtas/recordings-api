@@ -2,23 +2,20 @@ package pl.edu.agh.recorder.service.impl;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
-import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.S3Object;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import pl.edu.agh.recorder.exception.application.InvalidFileFormatException;
-import pl.edu.agh.recorder.repository.RecordingRepository;
 import pl.edu.agh.recorder.security.SecurityConstants;
 import pl.edu.agh.recorder.service.IRecordingsFileService;
 import ws.schild.jave.EncoderException;
 import ws.schild.jave.MultimediaObject;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -37,11 +34,13 @@ public class RecordingsFileService implements IRecordingsFileService {
     private final static int[] magicBytesRange = new int[] {4, 10};
 
     @Override
-    public Resource downloadRecording(String fileName) {
+    public void downloadRecording(String fileName, HttpServletRequest httpRequest, HttpServletResponse httpResponse) throws IOException {
         String filePath = String.format(fileNameFormat, fileName);
+        MultipartAWSFileSender fileSender = new MultipartAWSFileSender(filePath, s3Client, securityConstants.getAwsBucketName(), fileName)
+                .with(httpRequest)
+                .with(httpResponse);
 
-        S3Object object = s3Client.getObject(new GetObjectRequest(securityConstants.getAwsBucketName(), filePath));
-        return new InputStreamResource(object.getObjectContent());
+        fileSender.serveResource();
     }
 
     @Override

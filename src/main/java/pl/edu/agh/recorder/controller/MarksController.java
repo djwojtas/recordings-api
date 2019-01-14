@@ -1,6 +1,7 @@
 package pl.edu.agh.recorder.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import pl.edu.agh.recorder.entity.Comment;
 import pl.edu.agh.recorder.entity.Mark;
@@ -50,7 +51,7 @@ public class MarksController {
     }
 
     @GetMapping("/{markId}/comments")
-    public List<CommentResponse> getComments(@PathVariable("markId") Long markId, @RequestBody CommentPostRequest commentPostRequest) throws MarkDoesNotExistException {
+    public List<CommentResponse> getComments(@PathVariable("markId") Long markId) {
         return commentMapper.toResponseList(commentService.getComments(markId));
     }
 
@@ -64,6 +65,7 @@ public class MarksController {
         return markMapper.toResponse(marksService.updateMark(mark));
     }
 
+    @Transactional
     @DeleteMapping("/{id}")
     public DefaultResponse deleteMark(@PathVariable("id") Long id) throws MarkDoesNotExistException {
         Mark mark = marksService.getMark(id);

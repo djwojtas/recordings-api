@@ -14,7 +14,6 @@ import pl.edu.agh.recorder.service.ITagService;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class TagService implements ITagService {
@@ -33,17 +32,26 @@ public class TagService implements ITagService {
         return tagRepository.save(Tag.builder().tag(tag).build());
     }
 
+    private Tag addTagIfDoesntExist(String tag) {
+        Optional<Tag> existingTag = tagRepository.findByTag(tag);
+        if (existingTag.isPresent()) {
+            return existingTag.get();
+        } else {
+            return tagRepository.save(Tag.builder().tag(tag).build());
+        }
+    }
+
     @Override
     @PreAuthorize("@guard.checkUserOwnsRecording(authentication, #recording.id)")
     public List<RecordingTag> addTagsToRecording(Recording recording, List<String> tags) {
-        return tags.stream()
-                .map(tag -> tagRepository.findByTag(tag))
-                .map(tag -> tag.orElseThrow(TagDoesNotExistException::new))
-                .map(tag -> recordingTagRepository.save(RecordingTag.builder()
+        tags.stream()
+                .map(this::addTagIfDoesntExist)
+                .forEach(tag -> recordingTagRepository.save(RecordingTag.builder()
                         .recording(recording)
                         .tag(tag)
-                        .build()))
-                .collect(Collectors.toList());
+                        .build()));
+
+        return recordingTagRepository.findAllByRecording_Id(recording.getId());
     }
 
     @Override

@@ -1,6 +1,7 @@
 package pl.edu.agh.recorder.service;
 
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import pl.edu.agh.recorder.entity.Mark;
 import pl.edu.agh.recorder.exception.application.MarkDoesNotExistException;
 
@@ -19,6 +20,7 @@ public interface IMarksService {
     @PreAuthorize("@guard.checkUserOwnsMark(authentication, #mark.id)")
     Mark updateMark(Mark mark);
 
+    @Transactional
     @PreAuthorize("@guard.checkUserOwnsMark(authentication, #mark.id)")
     void deleteMark(Mark mark);
 

@@ -36,7 +36,7 @@ public class MarksService implements IMarksService {
     public Mark getMark(Long id) throws MarkDoesNotExistException {
         Optional<Mark> mark = markRepository.findById(id);
 
-        if (mark.isPresent()) throw new MarkDoesNotExistException();
+        if (!mark.isPresent()) throw new MarkDoesNotExistException();
         return mark.get();
     }
 

@@ -1,9 +1,9 @@
 package pl.edu.agh.recorder.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.Resource;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import pl.edu.agh.recorder.entity.ApplicationUser;
 import pl.edu.agh.recorder.entity.Mark;
 import pl.edu.agh.recorder.entity.Recording;
 import pl.edu.agh.recorder.exception.application.*;
@@ -12,10 +12,14 @@ import pl.edu.agh.recorder.mapper.RecordingMapper;
 import pl.edu.agh.recorder.mapper.TagMapper;
 import pl.edu.agh.recorder.message.DefaultResponse;
 import pl.edu.agh.recorder.rest.*;
+import pl.edu.agh.recorder.security.UserPrincipal;
 import pl.edu.agh.recorder.service.*;
 import pl.edu.agh.recorder.service.impl.AuthenticationService;
+import pl.edu.agh.recorder.service.impl.CustomUserDetailsService;
 import ws.schild.jave.EncoderException;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -43,6 +47,9 @@ public class RecordingsController {
     private AuthenticationService authenticationService;
 
     @Autowired
+    private CustomUserDetailsService userDetailsService;
+
+    @Autowired
     private MarkMapper markMapper;
 
     @Autowired
@@ -57,14 +64,19 @@ public class RecordingsController {
     }
 
     @GetMapping("/download/{id}")
-    public Resource recordingUpload(@PathVariable("id") Long id) throws RecordingDoesNotExistException {
+    public void recordingUpload(@PathVariable("id") Long id, HttpServletRequest httpRequest, HttpServletResponse httpResponse) throws RecordingDoesNotExistException, IOException {
         Recording recording = recordingsService.getRecordingById(id);
-        return recordingsFileService.downloadRecording(recording.getFileName());
+        recordingsFileService.downloadRecording(recording.getFileName(), httpRequest, httpResponse);
     }
 
     @GetMapping
     public List<RecordingResponse> getRecordings() {
         return recordingMapper.toResponseList(recordingsService.getUserRecordings());
+    }
+
+    @GetMapping("/{id}")
+    public RecordingResponse getRecording(@PathVariable("id") Long id) throws RecordingDoesNotExistException {
+        return recordingMapper.toResponse(recordingsService.getRecordingById(id));
     }
 
 
@@ -76,23 +88,25 @@ public class RecordingsController {
     }
 
     @DeleteMapping("/{id}")
-    public DefaultResponse updateRecording(@PathVariable("id") Long id) throws RecordingDoesNotExistException {
+    public DefaultResponse deleteRecording(@PathVariable("id") Long id) throws RecordingDoesNotExistException {
         Recording recording = recordingsService.getRecordingById(id);
         recordingsService.deleteRecording(recording);
         return new DefaultResponse("success");
     }
 
-    @PostMapping("/{recordingId}/permissions/{userId}")
-    public DefaultResponse grantPermission(@PathVariable("recordingId") Long recordingId, @PathVariable("userId") Long userId) throws RecordingDoesNotExistException, UserNotFoundException, PermissionAlreadyGrantedException {
+    @PostMapping("/{recordingId}/permissions/{username}")
+    public DefaultResponse grantPermission(@PathVariable("recordingId") Long recordingId, @PathVariable("username") String username) throws RecordingDoesNotExistException, UserNotFoundException, PermissionAlreadyGrantedException {
+        ApplicationUser user = userDetailsService.loadUserByUsername(username).getApplicationUser();
         Recording recording = recordingsService.getRecordingById(recordingId);
-        permissionService.grantPermission(recording, userId);
+        permissionService.grantPermission(recording, user.getId());
         return new DefaultResponse("success");
     }
 
-    @DeleteMapping("/{recordingId}/permissions/{userId}")
-    public DefaultResponse revokePermission(@PathVariable("recordingId") Long recordingId, @PathVariable("userId") Long userId) throws RecordingDoesNotExistException, UserNotFoundException, PermissionDoesNotExistException {
+    @DeleteMapping("/{recordingId}/permissions/{username}")
+    public DefaultResponse revokePermission(@PathVariable("recordingId") Long recordingId, @PathVariable("username") String username) throws RecordingDoesNotExistException, UserNotFoundException, PermissionDoesNotExistException {
+        ApplicationUser user = userDetailsService.loadUserByUsername(username).getApplicationUser();
         Recording recording = recordingsService.getRecordingById(recordingId);
-        permissionService.revokePermission(recording, userId);
+        permissionService.revokePermission(recording, user.getId());
         return new DefaultResponse("success");
     }
 
@@ -130,7 +144,7 @@ public class RecordingsController {
     }
 
     @GetMapping("/{recordingId}/tags")
-    public List<TagResponse> addTagsToRecording(@PathVariable("recordingId") Long recordingId) {
+    public List<TagResponse> getRecordingTags(@PathVariable("recordingId") Long recordingId) {
         return tagMapper.toRecordingTagResponseList(tagService.getRecordingTags(recordingId));
     }
 

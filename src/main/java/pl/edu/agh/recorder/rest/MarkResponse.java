@@ -11,9 +11,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class MarkResponse {
     private Long id;
-    private String name;
     private Long markTime;
-    private String username;
     private Long recordingId;
+    private String name;
+    private String username;
     private String recordingTitle;
 }

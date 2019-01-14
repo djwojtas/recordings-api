@@ -52,7 +52,7 @@ public class PermissionService implements IPermissionService {
         if (!targetUser.isPresent()) throw new UserNotFoundException();
 
         Optional<Permission> existingPermission = permissionRepository.findByUserAndRecording_Id(targetUser.get(), recording.getId());
-        if (existingPermission.isPresent()) throw new PermissionDoesNotExistException();
+        if (!existingPermission.isPresent()) throw new PermissionDoesNotExistException();
 
         permissionRepository.delete(existingPermission.get());
     }

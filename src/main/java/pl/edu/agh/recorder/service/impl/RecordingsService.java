@@ -48,7 +48,7 @@ public class RecordingsService implements IRecordingsService {
 
     @Override
     public List<Recording> getUserRecordings() {
-        return recordingRepository.findByUser(authenticationService.getAuthenticatedUser());
+        return recordingRepository.findAllUserCanAccess(authenticationService.getAuthenticatedUser());
     }
 
     @Override

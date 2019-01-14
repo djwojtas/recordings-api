@@ -8,6 +8,8 @@ import pl.edu.agh.recorder.entity.ApplicationUser;
 import pl.edu.agh.recorder.repository.ApplicationUserRepository;
 import pl.edu.agh.recorder.security.UserPrincipal;
 
+import java.util.Optional;
+
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
 
@@ -16,10 +18,10 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserPrincipal loadUserByUsername(String username) throws UsernameNotFoundException {
-        ApplicationUser user = applicationUserRepository.findByUsername(username);
-        if (user == null) {
+        Optional<ApplicationUser> user = applicationUserRepository.findByUsername(username);
+        if (!user.isPresent()) {
             throw new UsernameNotFoundException(username);
         }
-        return new UserPrincipal(user);
+        return new UserPrincipal(user.get());
     }
 }

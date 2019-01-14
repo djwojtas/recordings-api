@@ -16,6 +16,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import pl.edu.agh.recorder.entity.ApplicationUser;
 import pl.edu.agh.recorder.exception.MalformedCredentialsException;
 import pl.edu.agh.recorder.security.SecurityConstants;
+import pl.edu.agh.recorder.security.UserPrincipal;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -52,6 +53,7 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         ZonedDateTime expirationTimeUTC = ZonedDateTime.now(ZoneOffset.UTC).plus(securityConstants.getExpirationTime(), ChronoUnit.MILLIS);
         String token = Jwts.builder().setSubject(((UserDetails) authResult.getPrincipal()).getUsername())
                 .setExpiration(Date.from(expirationTimeUTC.toInstant()))
+                .setId(((UserPrincipal) authResult.getPrincipal()).getApplicationUser().getId().toString())
                 .signWith(SignatureAlgorithm.HS512, securityConstants.getSecret())
                 .compact();
         response.getWriter().write("{\"token\":\"" + securityConstants.getTokenPrefix() + token + "\"}");

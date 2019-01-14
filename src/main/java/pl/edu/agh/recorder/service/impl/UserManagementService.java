@@ -19,7 +19,7 @@ public class UserManagementService implements IUserManagementService {
 
     @Override
     public void createUser(ApplicationUser applicationUser) throws UserExistsException {
-        if (applicationUserRepository.findByUsername(applicationUser.getUsername()) != null) {
+        if (applicationUserRepository.findByUsername(applicationUser.getUsername()).isPresent()) {
             throw new UserExistsException();
         }
         applicationUser.setPassword(passwordEncoder.encode(applicationUser.getPassword()));
